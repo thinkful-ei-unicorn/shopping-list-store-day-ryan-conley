@@ -1,11 +1,12 @@
+/* eslint-disable no-undef */
 'use strict';
 
 const store = {
   items: [
-    { id: cuid(), name: 'apples', checked: false },
-    { id: cuid(), name: 'oranges', checked: false },
-    { id: cuid(), name: 'milk', checked: true },
-    { id: cuid(), name: 'bread', checked: false }
+    { id: cuid(), name: 'apples', checked: false, edit: false },
+    { id: cuid(), name: 'oranges', checked: false, edit: false },
+    { id: cuid(), name: 'milk', checked: true, edit: false },
+    { id: cuid(), name: 'bread', checked: false, edit: false }
   ],
   hideCheckedItems: false
 };
@@ -25,11 +26,21 @@ const generateItemElement = function (item) {
         <button class='shopping-item-toggle js-item-toggle'>
           <span class='button-label'>check</span>
         </button>
+        <button class='shopping-item-edit js-item-edit'>
+          <span class='button-label'>edit</span>
+        </button>
         <button class='shopping-item-delete js-item-delete'>
           <span class='button-label'>delete</span>
         </button>
       </div>
     </li>`;
+};
+
+const editItem = function () {
+  console.log('ready to be edited');
+  return `<label for="shopping-list-entry">Edit item</label>
+   <input type="text" name="editItem" class="js-shopping-list-edit" placeholder="eg.. item" required>
+   <button type="button" id="edited">Edit item</button>`;
 };
 
 const generateShoppingItemsString = function (shoppingList) {
@@ -65,7 +76,7 @@ const render = function () {
 };
 
 const addItemToShoppingList = function (itemName) {
-  store.items.push({ id: cuid(), name: itemName, checked: false });
+  store.items.push({ id: cuid(), name: itemName, checked: false, edit: false });
 };
 
 const handleNewItemSubmit = function () {
@@ -95,6 +106,37 @@ const getItemIdFromElement = function (item) {
   return $(item)
     .closest('.js-item-element')
     .data('item-id');
+};
+
+// Edit item button
+const toggleEditedForListItem = function (id) {
+  const foundItem = store.items.find(item => item.id === id);
+  foundItem.edit = !foundItem.edit;
+  editListItem(id);
+};
+
+const handleItemEditClicked = function () {
+  $('.js-shopping-list').on('click', '.js-item-edit', event => {
+    const id = getItemIdFromElement(event.currentTarget);
+    toggleEditedForListItem(id);
+    console.log('item is editable...');
+  });
+};
+
+const editListItem = function (id) {
+  const index = store.items.findIndex(item => item.id === id);
+  $('.js-item-element').html(editItem());
+};
+
+// submitting new item
+const editButton = function () {
+  $('.js-item-element').on('click', '#edited', event => {
+    const id = getItemIdFromElement(event.currentTarget);
+    const foundItem = store.items.find(item => item.id === id);
+    foundItem.name = $('.js-shopping-list-edit').val('');
+    foundItem.edit = false;
+    render();
+  });
 };
 
 /**
@@ -162,6 +204,8 @@ const handleShoppingList = function () {
   handleItemCheckClicked();
   handleDeleteItemClicked();
   handleToggleFilterClick();
+  handleItemEditClicked();
+  editButton();
 };
 
 // when the page loads, call `handleShoppingList`
